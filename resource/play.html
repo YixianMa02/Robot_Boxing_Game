@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet" 
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="css/playStyle.css">
+    <link rel="icon" href="icon/boxing_icon.png">
+    
+    <title>Robot Boxing Web Game</title>
+</head>
+
+<body class="bg-dark">
+    <div class="container-fluid bg-danger">
+        <div class="row">
+            <div class="mt-1 mb-1 d-flex justify-content-center">
+                <img src="icon/boxing_title_icon.png" width="80px">
+            </div>
+        </div>        
+    </div>  
+    <nav class="nav nav-pills nav-fill">
+        <a class="nav-item nav-link text-white border" href="/">HOME PAGE</a>
+        <a class="nav-item nav-link text-white border" href="/rule">GAME RULE</a>
+    </nav>
+
+    <div class="position-relative">
+        <div class="container-xl position-relative mt-3">
+            <div class="row">
+                <div class="col-1">
+                    <h6 class="text-white">Player Health:</h6>
+                </div>
+                <div class="col-1 bg-primary border" id="ph1"></div>
+                <div class="col-1 bg-primary border" id="ph2"></div>
+                <div class="col-1 bg-primary border" id="ph3"></div>
+                <div class="col-1 bg-primary border" id="ph4"></div>
+                <div class="col-1 bg-primary border" id="ph5"></div>
+                <div class="col-1">
+                    <h6 class="text-white">AI Health:</h6>
+                </div>
+                <div class="col-1 bg-danger border" id="ah1"></div>
+                <div class="col-1 bg-danger border" id="ah2"></div>
+                <div class="col-1 bg-danger border" id="ah3"></div>
+                <div class="col-1 bg-danger border" id="ah4"></div>
+                <div class="col-1 bg-danger border" id="ah5"></div>
+            </div>
+        </div>
+
+        <div class="container-fluid position-relative mt-3">
+            <div class="has-bg-img">    
+                <img class="bg-img border rounded" src="icon/battle_stage.jpg" width="100%" height="250px">
+            </div> 
+            <div id="playerCharacter">
+                <img id="playerImg" src="" width="125px">
+            </div>
+            <div id="aiCharacter">
+                <img id="aiImg" src="" width="125px">
+            </div>
+        </div>
+
+        <div class="container-fluid mt-3">
+            <div class="row">
+                <div class="col-6">
+                    <div class="row">
+                        <div class="col-1"></div>
+                        <div class="col-3">
+                            <button class="btn btn-info" onclick="selectRPS(0);" id="btnRock">Rock</button>
+                        </div>
+                        <div class="col-1"></div>
+                        <div class="col-3">
+                            <button class="btn btn-danger" onclick="selectRPS(1)" id="btnPaper">Paper</button>
+                        </div>
+                        <div class="col-1"></div>
+                        <div class="col-3">
+                            <button class="btn btn-success" onclick="selectRPS(2)" id="btnScissors">Scissors</button>
+                        </div>
+                    </div>
+                    <div class="row mt-5">
+                        <div class="col-1"></div>
+                        <div class="col-3">
+                            <button class="btn btn-info" onclick="selectLHD(0);" disabled id="btnLightAttack">Light Attack</button>
+                        </div>
+                        <div class="col-1"></div>
+                        <div class="col-3">
+                            <button class="btn btn-danger" onclick="selectLHD(1)" disabled id="btnHeavyAttack">Heavy Attack</button>
+                        </div>
+                        <div class="col-1"></div>
+                        <div class="col-3">
+                            <button class="btn btn-success" onclick="selectLHD(2)" disabled id="btnDefense">Defense</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 text-white">
+                    <hr>
+                    <p id="player_choice">&nbsp;</p>
+                    <p id="computer_choice">&nbsp;</p>
+                    <p class="text-danger" id="game_result">&nbsp;</p>
+                    <hr>
+                </div>
+            </div>
+        </div>
+        <div class="d-flex align-items-center justify-content-center" id="winnerScreen" onclick="location.href='/';">
+            <h1 class="text-white text-center" id="gameWinner">NULL</h1>
+        </div>
+    </div>
+</body>
+
+<script>
+    var playerHealthArray = [document.getElementById("ph5"), document.getElementById("ph4"), document.getElementById("ph3"), 
+                             document.getElementById("ph2"), document.getElementById("ph1")]
+    var computerHealthArray = [document.getElementById("ah5"), document.getElementById("ah4"), document.getElementById("ah3"), 
+                               document.getElementById("ah2"), document.getElementById("ah1")]
+    var imageArray = ["icon/robots/robot1.png","icon/robots/robot2.png",
+    "icon/robots/robot3.png","icon/robots/robot4.png",
+    "icon/robots/robot5.png","icon/robots/robot6.png",
+    "icon/robots/robot7.png","icon/robots/robot8.png",
+    "icon/robots/robot9.png","icon/robots/robot10.png",
+    "icon/robots/robot11.png","icon/robots/robot12.png"]
+
+    document.getElementById("playerImg").setAttribute("src",imageArray[Math.floor(Math.random() * 12)]);
+    document.getElementById("aiImg").setAttribute("src",imageArray[Math.floor(Math.random() * 12)]);
+
+    function selectRPS(choice) {
+        disableUnableBtn();
+        fetch("/play?rps=" + choice)
+        .then(response => response.json())
+        .then(data => {
+            if (choice == 0) {
+                document.getElementById("player_choice").innerHTML = "Player select ROCK";
+            } else if (choice == 1) {
+                document.getElementById("player_choice").innerHTML = "Player select PAPER";
+            } else {
+                document.getElementById("player_choice").innerHTML = "Player select SCISSORS";
+            }
+            
+            hideHealthBar(playerHealthArray, 5 - data.player_life)
+            hideHealthBar(computerHealthArray, 5 - data.npc_life)
+            document.getElementById("computer_choice").innerHTML = data.computer_choice;
+            document.getElementById("game_result").innerHTML = data.round_result;
+
+            setWinner(data.player_life, data.npc_life);
+        })  
+    }
+
+    function selectLHD(choice) {
+        disableUnableBtn();
+        fetch("/fight?lhd=" + choice)
+        .then(response => response.json())
+        .then(data => {
+            if (choice == 0) {
+                document.getElementById("player_choice").innerHTML = "Player chose LIGHT ATTACK";
+            } else if (choice == 1) {
+                document.getElementById("player_choice").innerHTML = "Player chose HEAVY ATTACK";
+            } else {
+                document.getElementById("player_choice").innerHTML = "Player chose DEFENSE";
+            }
+
+            hideHealthBar(playerHealthArray, 5 - data.player_life)
+            hideHealthBar(computerHealthArray, 5 - data.npc_life)
+            document.getElementById("computer_choice").innerHTML = data.computer_choice;
+            document.getElementById("game_result").innerHTML = data.round_result;
+            
+            setWinner(data.player_life, data.npc_life);
+        })  
+    }
+
+    function disableUnableBtn() {
+        if (document.getElementById("btnRock").disabled == true) {
+            document.getElementById("btnRock").disabled = false;
+            document.getElementById("btnPaper").disabled = false;
+            document.getElementById("btnScissors").disabled = false;
+
+            document.getElementById("btnLightAttack").disabled = true;
+            document.getElementById("btnHeavyAttack").disabled = true;
+            document.getElementById("btnDefense").disabled = true;
+        } else {
+            document.getElementById("btnRock").disabled = true;
+            document.getElementById("btnPaper").disabled = true;
+            document.getElementById("btnScissors").disabled = true;
+
+            document.getElementById("btnLightAttack").disabled = false;
+            document.getElementById("btnHeavyAttack").disabled = false;
+            document.getElementById("btnDefense").disabled = false;
+        }
+    }
+
+    function hideHealthBar(healthBarArray, counter) {
+        if (counter > 5) {
+            counter = 5;
+        }
+        for (let i = 0; i < counter; i++) {
+            healthBarArray[i].style.visibility = 'hidden';
+        }
+    }
+
+    function setWinner(ph, npch) {
+        if ((ph <= 0) && (npch <= 0)) {
+            document.getElementById("winnerScreen").style.visibility = 'visible';
+            document.getElementById("gameWinner").innerHTML = "GAME DRAW!";
+        } else if (ph <= 0) {
+            document.getElementById("winnerScreen").style.visibility = 'visible';
+            document.getElementById("gameWinner").innerHTML = "COMPUTER WIN!";
+        } else if (npch <= 0) {
+            document.getElementById("winnerScreen").style.visibility = 'visible';
+            document.getElementById("gameWinner").innerHTML = "PLAYER WIN!";
+        }
+    }
+
+</script>
+</html>
